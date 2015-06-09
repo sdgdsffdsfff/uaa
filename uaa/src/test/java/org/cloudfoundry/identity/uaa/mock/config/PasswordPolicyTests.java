@@ -1,6 +1,7 @@
 package org.cloudfoundry.identity.uaa.mock.config;
 
 import org.cloudfoundry.identity.uaa.config.PasswordPolicy;
+import org.cloudfoundry.identity.uaa.mock.InjectedMockContextTest;
 import org.cloudfoundry.identity.uaa.test.YamlServletProfileInitializerContextInitializer;
 import org.junit.After;
 import org.junit.Before;
@@ -27,28 +28,15 @@ import static org.hamcrest.Matchers.is;
  * *****************************************************************************
  */
 @Ignore
-public class PasswordPolicyTests {
-    private XmlWebApplicationContext webApplicationContext;
-    private MockEnvironment environment;
-
-    @Before
-    public void setUp() {
-        webApplicationContext = new XmlWebApplicationContext();
-        environment = new MockEnvironment();
-        webApplicationContext.setEnvironment(environment);
-        new YamlServletProfileInitializerContextInitializer().initializeContext(webApplicationContext, "uaa.yml,login.yml");
-        webApplicationContext.setConfigLocation("file:./src/main/webapp/WEB-INF/spring-servlet.xml");
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        webApplicationContext.destroy();
-        webApplicationContext = null;
-        environment = null;
-    }
+public class PasswordPolicyTests extends InjectedMockContextTest {
 
     @Test
     public void testReadPasswordProperties() {
+        XmlWebApplicationContext webApplicationContext = new XmlWebApplicationContext();
+        MockEnvironment environment = new MockEnvironment();
+        webApplicationContext.setEnvironment(environment);
+        new YamlServletProfileInitializerContextInitializer().initializeContext(webApplicationContext, "uaa.yml,login.yml");
+        webApplicationContext.setConfigLocation("file:./src/main/webapp/WEB-INF/spring-servlet.xml");
         environment.setProperty("password.policy.minLength", "8");
         environment.setProperty("password.policy.maxLength", "100");
         environment.setProperty("password.policy.requireAtLeastOneUpperCaseCharacter", "false");
@@ -67,8 +55,7 @@ public class PasswordPolicyTests {
 
     @Test
     public void testReadDefaultPasswordProperties() {
-        webApplicationContext.refresh();
-        PasswordPolicy passwordPolicy = webApplicationContext.getBean(PasswordPolicy.class);
+        PasswordPolicy passwordPolicy = getWebApplicationContext().getBean(PasswordPolicy.class);
         assertThat(passwordPolicy.getMinLength(), is(6));
         assertThat(passwordPolicy.getMaxLength(), is(128));
         assertThat(passwordPolicy.isRequireAtLeastOneUpperCaseCharacter(), is(true));
